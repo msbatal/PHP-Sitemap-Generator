@@ -100,7 +100,7 @@ $sitemap->updateRobots();
 $sitemap = new SunSitemap();
 $sitemap->addUrl('index.php', date('c'), 'daily', '1');
 $sitemap->createSitemap();
-$sitemap->->updateRobots();
+$sitemap->updateRobots();
 ```
 
 ```php
