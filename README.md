@@ -46,7 +46,7 @@ $sitemap = new SunSitemap('http://localhost/sunsitemap', 'test', 50000, true);
 Advanced initialization:
 
 ```php
-$sitemap = new SunSitemap('http://localhost/sunsitemap', 'test'); // base url, base path
+$sitemap = new SunSitemap('http://localhost/sunsitemap', '../test'); // base url, relative path
 $sitemap->createZip = true; // create gzip file
 $sitemap->maxUrl = 50000; // maximum Urls Per Sitemap
 ```
