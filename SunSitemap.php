@@ -12,7 +12,7 @@
  * @copyright Copyright (c) 2020, Sunhill Technology <www.sunhillint.com>
  * @license   https://opensource.org/licenses/lgpl-3.0.html The GNU Lesser General Public License, version 3.0
  * @link      https://github.com/msbatal/PHP-Sitemap-Generator
- * @version   2.3.0
+ * @version   2.4.1
  */
 
 class SunSitemap
@@ -22,19 +22,37 @@ class SunSitemap
      * Sitemap file name
      * @var string
      */
-    public $sitemapFile = "sitemap.xml";
+    private $sitemapFile = "sitemap.xml";
 
     /**
      * Sitemap index file name
      * @var string
      */
-    public $sitemapIndexFile = "sitemap-index.xml";
+    private $sitemapIndexFile = "sitemap-index.xml";
 
     /**
      * Robots file name
      * @var string
      */
-    public $robotsFile = "robots.txt";
+    private $robotsFile = "robots.txt";
+
+    /**
+     * Sitemap base url
+     * @var string
+     */
+    public $baseUrl;
+
+    /**
+     * Sitemap relative path
+     * @var string
+     */
+    public $relPath;
+
+    /**
+     * Sitemap absolute path
+     * @var string
+     */
+    private $absPath;
 
     /**
      * Maximum Urls Per Sitemap (max 50000)
@@ -47,18 +65,6 @@ class SunSitemap
      * @var boolean
      */
     public $createZip = false;
-
-    /**
-     * Sitemap base url
-     * @var string
-     */
-    private $baseUrl;
-
-    /**
-     * Sitemap base path
-     * @var string
-     */
-    private $basePath;
 
     /**
      * Urls to add sitemap
@@ -98,25 +104,29 @@ class SunSitemap
 
     /**
      * @param string $baseUrl
-     * @param string $basePath
+     * @param string $relPath
      * @param integer $maxUrl
      * @param boolean $createZip
      */
-    public function __construct($baseUrl = null, $basePath = null, $maxUrl = null, $createZip = null) {
+    public function __construct($baseUrl = null, $relPath = null, $maxUrl = null, $createZip = null) {
         set_exception_handler(function($exception) {
             echo '<b>[SunSitemap] Exception:</b> '.$exception->getMessage();
         });
         $this->startTime = microtime(true); // get process start time
-        if (empty($baseUrl)) {
-            $this->baseUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/'; // set default base url
-        } else {
+        if (!empty($baseUrl)) {
             $this->baseUrl = $baseUrl . '/'; // set base url
+        } else {
+            $this->baseUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/'; // set default base url
         }
-        if (!empty($basePath)) {
-            if (!file_exists(dirname(__FILE__) . '/' . $basePath)){
-                mkdir(dirname(__FILE__) . '/' . $basePath, 0777); // create directory if not exists
+        if (!empty($relPath)) {
+            if (!file_exists($relPath)){
+                throw new Exception('Sitemap path "'.$relPath.'" can not found.');
             }
-            $this->basePath = $basePath . '/'; // set sitemap base path
+            $this->relPath = str_replace(['../','..','./'], '', $relPath) . '/'; // set relative path
+            $this->absPath = $_SERVER['DOCUMENT_ROOT'] . '/' . $this->relPath; // set absolute path
+        } else {
+            $this->relPath = null; // set default relative path
+            $this->absPath = $_SERVER['DOCUMENT_ROOT'] . '/'; // set default absolute path
         }
         if (is_int($maxUrl)) {
             $this->maxUrl = $maxUrl; // set maximum urls per sitemap
@@ -153,7 +163,7 @@ class SunSitemap
                 throw new Exception('URL length cannot exceed 2048 characters.');
             }
             $urlArray = [];
-            $urlArray['loc'] = $this->baseUrl . $urls; // add page url attribute
+            $urlArray['loc'] = $this->baseUrl . $this->relPath . $urls; // add page url attribute
             if (!empty($lastmod)) {
                 $urlArray['lastmod'] = $lastmod; // add page last modification attribute
             }
@@ -210,16 +220,16 @@ class SunSitemap
             $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/siteindex.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>'); // add xml header
             foreach ($this->sitemaps as $sitemap) {
                 $row = $xml->addChild('sitemap');
-                $row->addChild('loc', $this->baseUrl . $this->basePath . htmlentities($sitemap[0])); // add page url
+                $row->addChild('loc', $this->baseUrl . $this->relPath . htmlentities($sitemap[0])); // add page url
                 $row->addChild('lastmod', date('c')); // add page last modification
             }
-            $this->sitemapUrl = $this->baseUrl . $this->basePath . $this->sitemapIndexFile;
+            $this->sitemapUrl = $this->baseUrl . $this->relPath . $this->sitemapIndexFile;
             $this->sitemapIndex = array($this->sitemapIndexFile, $xml->asXML());
         } else {
             if ($this->createZip) { // if will create gzip file
-                $this->sitemapUrl = $this->baseUrl . $this->basePath . $this->sitemapFile . '.gz';
+                $this->sitemapUrl = $this->baseUrl . $this->relPath . $this->sitemapFile . '.gz';
             } else {
-                $this->sitemapUrl = $this->baseUrl . $this->basePath . $this->sitemapFile;
+                $this->sitemapUrl = $this->baseUrl . $this->relPath . $this->sitemapFile;
             }
             $this->sitemaps[0] = array($this->sitemapFile, $this->sitemaps[0]);
         }
@@ -227,12 +237,12 @@ class SunSitemap
             throw new Exception('To create/update the sitemap file, first call the "createSitemap" method.');
         }
         if (count($this->sitemapIndex) > 0) { // if will create sitemap index
-            $file = fopen($this->basePath . $this->sitemapIndex[0], 'w');
+            $file = fopen($this->absPath . $this->sitemapIndex[0], 'w');
             fwrite($file, $this->sitemapIndex[1]);
             fclose($file);
-            if ((count(array_intersect(['mod_deflate', 'mod_gzip'],  apache_get_modules())) > 0) || (function_exists('ob_gzhandler') && ini_get('zlib.output_compression'))) { // check if gzip extension enabled
+            if (function_exists('ob_gzhandler') && ini_get('zlib.output_compression')) { // check if gzip extension enabled
                 foreach ($this->sitemaps as $sitemap) {
-                    $file = gzopen($this->basePath . $sitemap[0], 'w');
+                    $file = gzopen($this->absPath . $sitemap[0], 'w');
                     gzwrite($file, $sitemap[1]);
                     gzclose($file);
                 }
@@ -240,12 +250,12 @@ class SunSitemap
                 throw new Exception('The GZip file compression module is not enabled.');
             }
         } else {  // if will create sitemap
-            $file = fopen($this->basePath . $this->sitemaps[0][0], 'w');
+            $file = fopen($this->absPath . $this->sitemaps[0][0], 'w');
             fwrite($file, $this->sitemaps[0][1]);
             fclose($file);
             if ($this->createZip) {
-                if ((count(array_intersect(['mod_deflate', 'mod_gzip'],  apache_get_modules())) > 0) || (function_exists('ob_gzhandler') && ini_get('zlib.output_compression'))) { // check if gzip extension enabled
-                    $file = gzopen($this->basePath . $this->sitemaps[0][0] . '.gz', 'w');
+                if (function_exists('ob_gzhandler') && ini_get('zlib.output_compression')) { // check if gzip extension enabled
+                    $file = gzopen($this->absPath . $this->sitemaps[0][0] . '.gz', 'w');
                     gzwrite($file, $this->sitemaps[0][1]);
                     gzclose($file);
                 } else {
@@ -266,8 +276,8 @@ class SunSitemap
         if (!isset($this->sitemaps)) {
             throw new Exception('To create/update the robots.txt file, first call the "createSitemap" method.');
         }
-        if (file_exists(dirname(__FILE__) . '/' . $this->robotsFile)) { // if robots.txt file already exists
-            $robotsFile = explode("\n", file_get_contents(dirname(__FILE__) . '/' . $this->robotsFile)); // read robots file
+        if (file_exists($this->absPath . $this->robotsFile)) { // if robots.txt file already exists
+            $robotsFile = explode("\n", file_get_contents($this->absPath . $this->robotsFile)); // read robots file
             $robotsContent = '';
             foreach ($robotsFile as $key => $value) {
                 if (!empty($value)) {
@@ -282,14 +292,14 @@ class SunSitemap
             $robotsContent = "User-agent: *\nDisallow:\n";
         }
         if (count($this->sitemapIndex) == 0) {
-            $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->basePath . $this->sitemapFile;
+            $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->relPath . $this->sitemapFile;
         } else {
-            $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->basePath . $this->sitemapIndexFile;
+            $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->relPath . $this->sitemapIndexFile;
         }
         if ($this->createZip && count($this->sitemapIndex) == 0) {
-            $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->basePath . $this->sitemapFile . '.gz';
+            $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->relPath . $this->sitemapFile . '.gz';
         }
-        file_put_contents(dirname(__FILE__) . '/' . $this->robotsFile, $robotsContent); // create robots.txt file
+        file_put_contents($this->absPath . $this->robotsFile, $robotsContent); // create robots.txt file
         return $this;
     }
 
