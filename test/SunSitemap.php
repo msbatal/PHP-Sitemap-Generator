@@ -12,7 +12,7 @@
  * @copyright Copyright (c) 2020, Sunhill Technology <www.sunhillint.com>
  * @license   https://opensource.org/licenses/lgpl-3.0.html The GNU Lesser General Public License, version 3.0
  * @link      https://github.com/msbatal/PHP-Sitemap-Generator
- * @version   2.4.1
+ * @version   2.4.2
  */
 
 class SunSitemap
@@ -120,7 +120,7 @@ class SunSitemap
         }
         if (!empty($relPath)) {
             if (!file_exists($relPath)){
-                throw new Exception('Sitemap path "'.$relPath.'" can not found.');
+                throw new Exception('Sitemap path "'.$relPath.'" does not valid.');
             }
             $this->relPath = str_replace(['../','..','./'], '', $relPath) . '/'; // set relative path
             $this->absPath = $_SERVER['DOCUMENT_ROOT'] . '/' . $this->relPath; // set absolute path
@@ -205,8 +205,8 @@ class SunSitemap
                     $row->addChild('priority',$url['priority']); // add page priority
                 }
             }
-            if (strlen($xml->asXML()) > 1024*1024*10) {
-                throw new Exception('The size of the sitemap file is more than 10 MB. Please update your server settings.');
+            if (strlen($xml->asXML()) > 1024*1024*50) {
+                throw new Exception('The size of the sitemap file is more than 50 MB. Please update your sitemap settings to reduce the number of pages.');
             }
             $this->sitemaps[] = $xml->asXML();
         }
