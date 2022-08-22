@@ -205,8 +205,9 @@ class SunSitemap
                     $row->addChild('priority',$url['priority']); // add page priority
                 }
             }
-            if (strlen($xml->asXML()) > 1024*1024*10) {
-                throw new Exception('The size of the sitemap file is more than 10 MB. Please update your server settings.');
+            // Maximum sitemap size is 50 MB: https://en.wikipedia.org/wiki/Sitemaps
+            if (strlen($xml->asXML()) > 1024*1024*50) {
+                throw new Exception('The size of the sitemap file is more than 50 MB (limit). Please update your sitemap settings reduce the number of pages, there are too many.');
             }
             $this->sitemaps[] = $xml->asXML();
         }
