@@ -6,7 +6,7 @@ The goal of this class is to let you; Create dynamically an XML sitemap that can
 
 By placing a formatted XML file with a site map on your webserver, you enable Search Engine crawlers (like Google) to find out what pages are present and which have recently changed, and to crawl your site accordingly.
 
-The script doesn't have a limit on the number of pages included in the sitemap, although server resources required to create a sitemap depend on the website size.
+The class doesn't have a limit on the number of pages included in the sitemap, although server resources required to create a sitemap depend on the website size.
 
 Having an XML sitemap for your site is an integral part of search engine optimization (SEO). By creating and submitting XML sitemaps you are more likely to get better freshness and coverage in search engines.
 
