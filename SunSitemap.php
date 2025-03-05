@@ -12,7 +12,7 @@
  * @copyright Copyright (c) 2020, Sunhill Technology <www.sunhillint.com>
  * @license   https://opensource.org/licenses/lgpl-3.0.html The GNU Lesser General Public License, version 3.0
  * @link      https://github.com/msbatal/PHP-Sitemap-Generator
- * @version   2.4.2
+ * @version   2.5.2
  */
 
 class SunSitemap
@@ -110,7 +110,7 @@ class SunSitemap
      */
     public function __construct($baseUrl = null, $relPath = null, $maxUrl = null, $createZip = null) {
         set_exception_handler(function($exception) {
-            echo '<b>[SunSitemap] Exception:</b> '.$exception->getMessage();
+            echo '<b>[SunClass] Exception:</b> '.$exception->getMessage();
         });
         $this->startTime = microtime(true); // get process start time
         if (!empty($baseUrl)) {
@@ -163,7 +163,7 @@ class SunSitemap
                 throw new Exception('URL length cannot exceed 2048 characters.');
             }
             $urlArray = [];
-            $urlArray['loc'] = $this->baseUrl . $this->relPath . $urls; // add page url attribute
+            $urlArray['loc'] = rtrim($this->baseUrl, '/') . '/' . ltrim($this->relPath . $urls, '/'); // add page url attribute
             if (!empty($lastmod)) {
                 $urlArray['lastmod'] = $lastmod; // add page last modification attribute
             }
@@ -220,16 +220,16 @@ class SunSitemap
             $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/siteindex.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>'); // add xml header
             foreach ($this->sitemaps as $sitemap) {
                 $row = $xml->addChild('sitemap');
-                $row->addChild('loc', $this->baseUrl . $this->relPath . htmlentities($sitemap[0])); // add page url
+                $row->addChild('loc', rtrim($this->baseUrl, '/') . '/' . ltrim($this->relPath . htmlentities($sitemap[0]), '/')); // add page url
                 $row->addChild('lastmod', date('c')); // add page last modification
             }
-            $this->sitemapUrl = $this->baseUrl . $this->relPath . $this->sitemapIndexFile;
+            $this->sitemapUrl = rtrim($this->baseUrl, '/') . '/' . ltrim($this->relPath . $this->sitemapIndexFile, '/');
             $this->sitemapIndex = array($this->sitemapIndexFile, $xml->asXML());
         } else {
             if ($this->createZip) { // if will create gzip file
-                $this->sitemapUrl = $this->baseUrl . $this->relPath . $this->sitemapFile . '.gz';
+                $this->sitemapUrl = rtrim($this->baseUrl, '/') . '/' . ltrim($this->relPath . $this->sitemapFile, '/') . '.gz';
             } else {
-                $this->sitemapUrl = $this->baseUrl . $this->relPath . $this->sitemapFile;
+                $this->sitemapUrl = rtrim($this->baseUrl, '/') . '/' . ltrim($this->relPath . $this->sitemapFile, '/');
             }
             $this->sitemaps[0] = array($this->sitemapFile, $this->sitemaps[0]);
         }
