@@ -10,6 +10,8 @@ The class doesn't have a limit on the number of pages included in the sitemap, a
 
 Having an XML sitemap for your site is an integral part of search engine optimization (SEO). By creating and submitting XML sitemaps you are more likely to get better freshness and coverage in search engines.
 
+`Technical Document:` https://www.deepwiki.com/msbatal/PHP-Sitemap-Generator
+
 <hr>
 
 `Page Last modification` attribute: That is the time the URL was last modified. This information allows crawlers to avoid recrawling documents that haven't changed. Our generator will set this field from your server's response "Last-modified" headers when available.
