@@ -12,6 +12,8 @@ Having an XML sitemap for your site is an integral part of search engine optimiz
 
 `Technical Document:` https://www.deepwiki.com/msbatal/PHP-Sitemap-Generator
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/msbatal/PHP-Sitemap-Generator)
+
 <hr>
 
 `Page Last modification` attribute: That is the time the URL was last modified. This information allows crawlers to avoid recrawling documents that haven't changed. Our generator will set this field from your server's response "Last-modified" headers when available.
