@@ -1,8 +1,5 @@
 <?php
 
-//error_reporting(E_ALL);
-//ini_set('display_errors', TRUE);
-
 /**
  * SunSitemap Class
  *
@@ -12,7 +9,7 @@
  * @copyright Copyright (c) 2020, Sunhill Technology <www.sunhillint.com>
  * @license   https://opensource.org/licenses/lgpl-3.0.html The GNU Lesser General Public License, version 3.0
  * @link      https://github.com/msbatal/PHP-Sitemap-Generator
- * @version   2.5.2
+ * @version   2.5.3
  */
 
 class SunSitemap
@@ -109,9 +106,6 @@ class SunSitemap
      * @param boolean $createZip
      */
     public function __construct($baseUrl = null, $relPath = null, $maxUrl = null, $createZip = null) {
-        set_exception_handler(function($exception) {
-            echo '<b>[SunClass] Exception:</b> '.$exception->getMessage();
-        });
         $this->startTime = microtime(true); // get process start time
         if (!empty($baseUrl)) {
             $this->baseUrl = $baseUrl . '/'; // set base url
