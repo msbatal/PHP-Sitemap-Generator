@@ -94,9 +94,63 @@ $sitemap->createSitemap();
 
 ### Create/Update Robots.txt File
 
+`updateRobots()` always rebuilds `robots.txt` from scratch - it never reads or merges an existing file. That makes the output fully deterministic: it depends only on what you pass in, never on whatever happens to already be on disk (missing, hand-edited, or left over from a previous run).
+
+Every generated file also always explicitly allows the major AI answer-engine crawlers - GPTBot, ChatGPT-User, Google-Extended, CCBot, anthropic-ai, ClaudeBot, PerplexityBot, Applebot-Extended, Bytespider, and meta-externalagent - in addition to the default `User-agent: *` block, so your site stays discoverable by both traditional search and AI-powered answer engines.
+
+**No arguments** - allow everything:
+
 ```php
 $sitemap->updateRobots();
 ```
+
+```
+User-agent: *
+Disallow:
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+...
+
+User-agent: meta-externalagent
+Allow: /
+
+Sitemap: http://localhost/sunsitemap/sitemap.xml
+```
+
+**With a `$disallow` array** - block specific paths, everything else stays crawlable:
+
+```php
+$sitemap->updateRobots(['/admin/', '/config/', '/private-report.php']);
+```
+
+```
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+...
+
+User-agent: meta-externalagent
+Allow: /
+
+Disallow: /admin/
+Disallow: /config/
+Disallow: /private-report.php
+
+Sitemap: http://localhost/sunsitemap/sitemap.xml
+```
+
+`$disallow` entries work on individual files as well as directory prefixes - `/admin/` blocks everything under that path, `/private-report.php` blocks just that one file.
 
 ### Create Sitemap File and Update Robots.txt File
 
@@ -111,6 +165,14 @@ $sitemap->updateRobots();
 $sitemap = new SunSitemap();
 $sitemap->addUrl('index.php', date('c'), 'daily', '1');
 $sitemap->createSitemap()->updateRobots();
+```
+
+With disallowed paths:
+
+```php
+$sitemap = new SunSitemap();
+$sitemap->addUrl('index.php', date('c'), 'daily', '1');
+$sitemap->createSitemap()->updateRobots(['/admin/', '/config/']);
 ```
 
 ### Helper Methods
