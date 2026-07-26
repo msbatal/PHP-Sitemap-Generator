@@ -33,16 +33,23 @@
     */
 
 
-    $sitemap->createSitemap()->updateRobots(); // create sitemap and update robots.txt file (chained methods)
+    $sitemap->createSitemap()->updateRobots(['/admin/', '/config/', '/page.php']); // create sitemap and update robots.txt file, disallowing the given paths (chained methods)
 
 
     /*
     // Example for Calling Methods Separately
     $sitemap->createSitemap(); // create sitemap
-    $sitemap->updateRobots(); // update robots.txt file
+    $sitemap->updateRobots(['/admin/', '/config/', '/page.php']); // update robots.txt file, disallowing the given paths
     */
-    
-    
+
+
+    /*
+    // Example for Updating Robots.txt with No Disallow Rules
+    $sitemap->createSitemap();
+    $sitemap->updateRobots(); // no arguments - "Disallow:" stays empty, every path stays crawlable
+    */
+
+
     $memory = $sitemap->memoryUsage(); // total memory usage
     $duration = $sitemap->showDuration(); // total process duration
 
