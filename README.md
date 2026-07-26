@@ -119,13 +119,13 @@ Allow: /
 User-agent: meta-externalagent
 Allow: /
 
-Sitemap: http://localhost/sunsitemap/sitemap.xml
+Sitemap: https://www.domain.com/sitemap.xml
 ```
 
 **With a `$disallow` array** - block specific paths, everything else stays crawlable:
 
 ```php
-$sitemap->updateRobots(['/admin/', '/config/', '/private-report.php']);
+$sitemap->updateRobots(['/admin/', '/config/', '/page.php']);
 ```
 
 ```
@@ -145,12 +145,12 @@ Allow: /
 
 Disallow: /admin/
 Disallow: /config/
-Disallow: /private-report.php
+Disallow: /page.php
 
-Sitemap: http://localhost/sunsitemap/sitemap.xml
+Sitemap: https://www.domain.com/sitemap.xml
 ```
 
-`$disallow` entries work on individual files as well as directory prefixes - `/admin/` blocks everything under that path, `/private-report.php` blocks just that one file.
+`$disallow` entries work on individual files as well as directory prefixes - `/admin/` blocks everything under that path, `/page.php` blocks just that one file.
 
 ### Create Sitemap File and Update Robots.txt File
 
