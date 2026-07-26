@@ -9,7 +9,7 @@
  * @copyright Copyright (c) 2020, Sunhill Technology <www.sunhillint.com>
  * @license   https://opensource.org/licenses/lgpl-3.0.html The GNU Lesser General Public License, version 3.0
  * @link      https://github.com/msbatal/PHP-Sitemap-Generator
- * @version   2.5.3
+ * @version   2.5.4
  */
 
 class SunSitemap
@@ -263,27 +263,42 @@ class SunSitemap
     /**
      * Create/update Robots.txt file
      *
+     * Always rebuilds the file from these fixed rules plus the given
+     * $disallow list - it never reads or merges an existing robots.txt.
+     * That makes every call deterministic: the same $disallow input
+     * always produces the same output, regardless of whatever the file
+     * on disk currently contains (missing, hand-edited, or stale from a
+     * previous version of this method).
+     *
+     * Major AI answer-engine crawlers (GPTBot, ChatGPT-User, Google-
+     * Extended, CCBot, anthropic-ai, ClaudeBot, PerplexityBot, Applebot-
+     * Extended, Bytespider, meta-externalagent) are always explicitly
+     * allowed, in addition to the default "User-agent: *" block, so a
+     * site stays discoverable by both traditional search and AI-powered
+     * answer engines.
+     *
+     * @param array $disallow Paths to disallow, e.g. ['/App/', '/Core/'] - optional
      * @throws exception
      * @return object
      */
-    public function updateRobots() {
+    public function updateRobots($disallow = []) {
         if (!isset($this->sitemaps)) {
             throw new Exception('To create/update the robots.txt file, first call the "createSitemap" method.');
         }
-        if (file_exists($this->absPath . $this->robotsFile)) { // if robots.txt file already exists
-            $robotsFile = explode("\n", file_get_contents($this->absPath . $this->robotsFile)); // read robots file
-            $robotsContent = '';
-            foreach ($robotsFile as $key => $value) {
-                if (!empty($value)) {
-                    if (substr($value, 0, 8) == 'Sitemap:') {
-                        unset($robotsFile[$key]);
-                    } else {
-                        $robotsContent .= $value . "\n";
-                    }
-                }
+        $hasDisallow = is_array($disallow) && count($disallow) > 0;
+        $robotsContent = $hasDisallow ? "User-agent: *\nAllow: /\n" : "User-agent: *\nDisallow:\n";
+        $aiCrawlers = [
+            'GPTBot', 'ChatGPT-User', 'Google-Extended', 'CCBot', 'anthropic-ai',
+            'ClaudeBot', 'PerplexityBot', 'Applebot-Extended', 'Bytespider', 'meta-externalagent',
+        ];
+        foreach ($aiCrawlers as $crawler) {
+            $robotsContent .= "\nUser-agent: " . $crawler . "\nAllow: /\n";
+        }
+        if ($hasDisallow) {
+            $robotsContent .= "\n";
+            foreach ($disallow as $path) {
+                $robotsContent .= "Disallow: " . $path . "\n";
             }
-        } else {
-            $robotsContent = "User-agent: *\nDisallow:\n";
         }
         if (count($this->sitemapIndex) == 0) {
             $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->relPath . $this->sitemapFile;
@@ -292,6 +307,9 @@ class SunSitemap
         }
         if ($this->createZip && count($this->sitemapIndex) == 0) {
             $robotsContent .= "\nSitemap: " . $this->baseUrl . $this->relPath . $this->sitemapFile . '.gz';
+        }
+        if (file_exists($this->absPath . $this->robotsFile)) {
+            unlink($this->absPath . $this->robotsFile); // always start clean - never preserve/merge an existing file
         }
         file_put_contents($this->absPath . $this->robotsFile, $robotsContent); // create robots.txt file
         return $this;
