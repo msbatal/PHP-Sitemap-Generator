@@ -2,13 +2,18 @@
 
     require_once ('SunSitemap.php'); // Call 'SunSitemap' class
 
-    $sitemap = new SunSitemap('http://localhost/sunsitemap', '../test', null, true);
+    $sitemap = new SunSitemap('http://localhost/sunsitemap', '../test', null, true, true, true);
 
     /*
     // Example with Additional Settings
-    $sitemap = new SunSitemap('', '', 1000, true); // base_url, relative_path, max_url_per_sitemap, create_gzip
+    $sitemap = new SunSitemap('', '', 1000, true, true, true); // base_url, relative_path, max_url_per_sitemap, create_gzip, create_robots_file, create_llms_file
+    */
+
+    /*
     $sitemap->createZip = true; // create gzip file
     $sitemap->maxUrl = 50000; // maximum Urls Per Sitemap
+    $sitemap->robots = true; // create robots.txt file
+    $sitemap->llms = true; // create llms.txt file
     */
 
 
