@@ -302,18 +302,17 @@ class SunSitemap
         }
         $hasDisallow = is_array($disallow) && count($disallow) > 0;
         $robotsContent = $hasDisallow ? "User-agent: *\nAllow: /\n" : "User-agent: *\nDisallow:\n";
+        if ($hasDisallow) {
+            foreach ($disallow as $path) {
+                $robotsContent .= "Disallow: " . $path . "\n";
+            }
+        }
         $aiCrawlers = [
             'GPTBot', 'ChatGPT-User', 'Google-Extended', 'CCBot', 'anthropic-ai',
             'ClaudeBot', 'PerplexityBot', 'Applebot-Extended', 'Bytespider', 'meta-externalagent', 'Perplexity-User', 'Claude-Web', 'OAI-SearchBot'
         ];
         foreach ($aiCrawlers as $crawler) {
             $robotsContent .= "\nUser-agent: " . $crawler . "\nAllow: /\n";
-        }
-        if ($hasDisallow) {
-            $robotsContent .= "\n";
-            foreach ($disallow as $path) {
-                $robotsContent .= "Disallow: " . $path . "\n";
-            }
         }
         if ($this->llms) {
             if (!file_exists($this->absPath . $this->llmsFile)) {
