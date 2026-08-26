@@ -47,12 +47,20 @@ or you can use inline parameters:
 $sitemap = new SunSitemap('http://localhost/sunsitemap', 'test', 50000, true);
 ```
 
+or with `robots.txt` and `llms.txt` generation enabled too:
+
+```php
+$sitemap = new SunSitemap('http://localhost/sunsitemap', 'test', 50000, true, true, true);
+```
+
 Advanced initialization:
 
 ```php
 $sitemap = new SunSitemap('http://localhost/sunsitemap', '../test'); // base url, relative path
 $sitemap->createZip = true; // create gzip file
 $sitemap->maxUrl = 50000; // maximum Urls Per Sitemap
+$sitemap->robots = true; // update/create robots.txt
+$sitemap->llms = true; // create llms.txt
 ```
 
 All config parameters are optional.
@@ -94,13 +102,18 @@ $sitemap->createSitemap();
 
 ### Create/Update Robots.txt File
 
+`updateRobots()` only writes `robots.txt` when the `$robots` property is `true` (5th constructor parameter, or set directly on the object) - otherwise the call is a no-op and nothing on disk changes.
+
 `updateRobots()` always rebuilds `robots.txt` from scratch - it never reads or merges an existing file. That makes the output fully deterministic: it depends only on what you pass in, never on whatever happens to already be on disk (missing, hand-edited, or left over from a previous run).
 
 Every generated file also always explicitly allows the major AI answer-engine crawlers - GPTBot, ChatGPT-User, Google-Extended, CCBot, anthropic-ai, ClaudeBot, PerplexityBot, Applebot-Extended, Bytespider, and meta-externalagent - in addition to the default `User-agent: *` block, so your site stays discoverable by both traditional search and AI-powered answer engines.
 
+If the `$llms` property is also `true` (6th constructor parameter, or set directly on the object), `updateRobots()` also creates an empty `llms.txt` file next to `robots.txt` - only when one doesn't already exist, so any content you've written into it is never overwritten - and adds a `# AI context file:` line pointing to it in `robots.txt`.
+
 **No arguments** - allow everything:
 
 ```php
+$sitemap->robots = true;
 $sitemap->updateRobots();
 ```
 
@@ -125,6 +138,7 @@ Sitemap: https://www.domain.com/sitemap.xml
 **With a `$disallow` array** - block specific paths, everything else stays crawlable:
 
 ```php
+$sitemap->robots = true;
 $sitemap->updateRobots(['/admin/', '/config/', '/page.php']);
 ```
 
@@ -152,10 +166,41 @@ Sitemap: https://www.domain.com/sitemap.xml
 
 `$disallow` entries work on individual files as well as directory prefixes - `/admin/` blocks everything under that path, `/page.php` blocks just that one file.
 
+**With `$llms` enabled** - also create `llms.txt` and reference it in `robots.txt`:
+
+```php
+$sitemap->robots = true;
+$sitemap->llms = true;
+$sitemap->updateRobots();
+```
+
+```
+User-agent: *
+Disallow:
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+...
+
+User-agent: meta-externalagent
+Allow: /
+
+# AI context file: https://www.domain.com/llms.txt
+
+Sitemap: https://www.domain.com/sitemap.xml
+```
+
+`llms.txt` is created empty - SunSitemap never writes content into it, it's yours to fill in.
+
 ### Create Sitemap File and Update Robots.txt File
 
 ```php
 $sitemap = new SunSitemap();
+$sitemap->robots = true;
 $sitemap->addUrl('index.php', date('c'), 'daily', '1');
 $sitemap->createSitemap();
 $sitemap->updateRobots();
@@ -163,6 +208,7 @@ $sitemap->updateRobots();
 
 ```php
 $sitemap = new SunSitemap();
+$sitemap->robots = true;
 $sitemap->addUrl('index.php', date('c'), 'daily', '1');
 $sitemap->createSitemap()->updateRobots();
 ```
@@ -171,8 +217,17 @@ With disallowed paths:
 
 ```php
 $sitemap = new SunSitemap();
+$sitemap->robots = true;
 $sitemap->addUrl('index.php', date('c'), 'daily', '1');
 $sitemap->createSitemap()->updateRobots(['/admin/', '/config/']);
+```
+
+With `robots.txt` and `llms.txt` enabled through the constructor:
+
+```php
+$sitemap = new SunSitemap('http://localhost/sunsitemap', 'test', 50000, false, true, true); // ..., createZip, robots, llms
+$sitemap->addUrl('index.php', date('c'), 'daily', '1');
+$sitemap->createSitemap()->updateRobots();
 ```
 
 ### Helper Methods
